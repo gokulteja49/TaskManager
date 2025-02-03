@@ -1,10 +1,9 @@
-
 'use server';
 import { db } from './db';
 import { ObjectId } from 'mongodb';
 
-// Function to handle retry logic
-const retryOperation = async (operation: () => Promise<any>, retries: number = 3) => {
+// Define a type for the retry operation to make it more specific.
+const retryOperation = async <T>(operation: () => Promise<T>, retries: number = 3): Promise<T> => {
   let attempt = 0;
   while (attempt < retries) {
     try {
@@ -79,3 +78,4 @@ export async function deleteTask(id: string) {
     throw new Error('Failed to delete task');
   }
 }
+
