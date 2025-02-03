@@ -8,7 +8,7 @@ const retryOperation = async <T>(operation: () => Promise<T>, retries: number = 
   while (attempt < retries) {
     try {
       return await operation();
-    } catch (error) {
+    } catch {
       attempt++;
       console.error(`Retrying operation, attempt ${attempt}...`);
       if (attempt === retries) {
@@ -31,8 +31,8 @@ export async function getTasks(page: number = 1, limit: number = 10) {
       ...task,
       _id: task._id.toString(),
     }));
-  } catch (error) {
-    console.error('Error fetching tasks:', error);  // Log the error
+  } catch {
+    console.error('Error fetching tasks');
     throw new Error('Failed to fetch tasks');
   }
 }
@@ -41,8 +41,8 @@ export async function getTasks(page: number = 1, limit: number = 10) {
 export async function addTask(title: string, description: string, dueDate: string) {
   try {
     await db.collection('tasks').insertOne({ title, description, dueDate, completed: false });
-  } catch (error) {
-    console.error('Error adding task:', error);  // Log the error
+  } catch {
+    console.error('Error adding task');
     throw new Error('Failed to add task');
   }
 }
@@ -62,8 +62,8 @@ export async function toggleTask(id: string, completed: boolean): Promise<boolea
         console.error('No task found or update failed');
         return false;
       }
-    } catch (error) {
-      console.error('Error toggling task:', error);  // Log the error
+    } catch {
+      console.error('Error toggling task');
       return false;
     }
   });
@@ -73,8 +73,8 @@ export async function toggleTask(id: string, completed: boolean): Promise<boolea
 export async function deleteTask(id: string) {
   try {
     await db.collection('tasks').deleteOne({ _id: new ObjectId(id) });
-  } catch (error) {
-    console.error('Error deleting task:', error);  // Log the error
+  } catch {
+    console.error('Error deleting task');
     throw new Error('Failed to delete task');
   }
 }
