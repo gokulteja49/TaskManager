@@ -32,7 +32,7 @@ export async function getTasks(page: number = 1, limit: number = 10) {
       _id: task._id.toString(),
     }));
   } catch (error) {
-    console.error('Error fetching tasks:', error);
+    console.error('Error fetching tasks:', error);  // Log the error
     throw new Error('Failed to fetch tasks');
   }
 }
@@ -42,7 +42,7 @@ export async function addTask(title: string, description: string, dueDate: strin
   try {
     await db.collection('tasks').insertOne({ title, description, dueDate, completed: false });
   } catch (error) {
-    console.error('Error adding task:', error);
+    console.error('Error adding task:', error);  // Log the error
     throw new Error('Failed to add task');
   }
 }
@@ -63,7 +63,7 @@ export async function toggleTask(id: string, completed: boolean): Promise<boolea
         return false;
       }
     } catch (error) {
-      console.error('Error toggling task:', error);
+      console.error('Error toggling task:', error);  // Log the error
       return false;
     }
   });
@@ -74,7 +74,7 @@ export async function deleteTask(id: string) {
   try {
     await db.collection('tasks').deleteOne({ _id: new ObjectId(id) });
   } catch (error) {
-    console.error('Error deleting task:', error);
+    console.error('Error deleting task:', error);  // Log the error
     throw new Error('Failed to delete task');
   }
 }
