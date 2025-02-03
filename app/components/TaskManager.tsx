@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from 'react';
 import { getTasks, addTask, toggleTask, deleteTask } from '../../lib/actions';
@@ -25,15 +25,19 @@ const TaskManager: React.FC = () => {
 
   useEffect(() => {
     const fetchTasks = async () => {
-      const fetchedTasks = await getTasks();
-      const formattedTasks = fetchedTasks.map((task: any) => ({
-        _id: task._id || '',
-        title: task.title || '',
-        description: task.description || '',
-        dueDate: task.dueDate || '',
-        completed: task.completed || false,
-        isFading: task.isFading || false,
+      // Fetch tasks
+      const fetchedTasks: { _id: string }[] = await getTasks();
+
+      // Map the fetched tasks to match the Task interface
+      const formattedTasks: Task[] = fetchedTasks.map((task) => ({
+        _id: task._id,
+        title: '', // Set a default title if not provided
+        description: '', // Set a default description if not provided
+        dueDate: '', // Set a default dueDate if not provided
+        completed: false, // Set a default value for completed
+        isFading: false, // Default value for isFading
       }));
+
       setTasks(formattedTasks);
     };
     fetchTasks();
@@ -50,14 +54,14 @@ const TaskManager: React.FC = () => {
     }
 
     await addTask(title, description, dueDate);
-    const tasks = await getTasks();
-    const formattedTasks = tasks.map((task: any) => ({
-      _id: task._id || '',
-      title: task.title || '',
-      description: task.description || '',
-      dueDate: task.dueDate || '',
-      completed: task.completed || false,
-      isFading: task.isFading || false,
+    const fetchedTasks: { _id: string }[] = await getTasks();
+    const formattedTasks: Task[] = fetchedTasks.map((task) => ({
+      _id: task._id,
+      title: '', 
+      description: '', 
+      dueDate: '', 
+      completed: false, 
+      isFading: false, 
     }));
     setTasks(formattedTasks);
     setTitle('');
@@ -72,14 +76,14 @@ const TaskManager: React.FC = () => {
 
   const handleToggleTask = async (taskId: string, completed: boolean) => {
     await toggleTask(taskId, !completed);
-    const tasks = await getTasks();
-    const formattedTasks = tasks.map((task: any) => ({
-      _id: task._id || '',
-      title: task.title || '',
-      description: task.description || '',
-      dueDate: task.dueDate || '',
-      completed: task.completed || false,
-      isFading: task.isFading || false,
+    const fetchedTasks: { _id: string }[] = await getTasks();
+    const formattedTasks: Task[] = fetchedTasks.map((task) => ({
+      _id: task._id,
+      title: '', 
+      description: '', 
+      dueDate: '', 
+      completed: false, 
+      isFading: false, 
     }));
     setTasks(formattedTasks);
 
@@ -100,22 +104,25 @@ const TaskManager: React.FC = () => {
 
   const handleDeleteTask = async (taskId: string) => {
     await deleteTask(taskId);
-    const tasks = await getTasks();
-    const formattedTasks = tasks.map((task: any) => ({
-      _id: task._id || '',
-      title: task.title || '',
-      description: task.description || '',
-      dueDate: task.dueDate || '',
-      completed: task.completed || false,
-      isFading: task.isFading || false,
+    const fetchedTasks: { _id: string }[] = await getTasks();
+    const formattedTasks: Task[] = fetchedTasks.map((task) => ({
+      _id: task._id,
+      title: '', 
+      description: '', 
+      dueDate: '', 
+      completed: false, 
+      isFading: false,
     }));
     setTasks(formattedTasks);
   };
 
   return (
     <div className="flex min-h-screen">
+      
       <div className="w-1/2 p-8 bg-gray-800 text-white flex flex-col justify-center">
-        <h1 className="text-5xl font-extrabold text-blue-500 mb-6">TaskManager</h1>
+        <h1 className="text-5xl font-extrabold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg">
+          TASK-MANAGER
+        </h1>
         <input
           type="text"
           placeholder="Enter task title"
@@ -145,13 +152,14 @@ const TaskManager: React.FC = () => {
         </button>
       </div>
 
+    
       <div className="w-1/2 p-8 bg-gray-700 text-white overflow-y-auto">
         <h1 className="text-4xl font-semibold text-center mb-6">Task Dashboard</h1>
         <ul>
           {tasks.map((task) => (
             <li
               key={task._id}
-              className={`p-4 bg-gray-600 rounded-lg shadow-lg flex justify-between items-center transition-all duration-300 transform ${task.completed ? 'bg-green-700' : 'bg-gray-600'} hover:scale-105 ${task.isFading ? 'opacity-0 transition-opacity duration-1000' : ''} mb-4`}
+              className={`p-4 bg-gray-600 rounded-lg shadow-lg flex justify-between items-center transition-all duration-300 transform ${task.completed ? 'bg-green-700' : 'bg-gray-600'} hover:scale-105 ${task.isFading ? 'opacity-0 transition-opacity duration-1000' : ''}`}
             >
               <div>
                 <h3 className="text-xl font-semibold">{task.title}</h3>
