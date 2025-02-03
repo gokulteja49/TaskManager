@@ -78,4 +78,3 @@ export async function deleteTask(id: string) {
     throw new Error('Failed to delete task');
   }
 }
-
