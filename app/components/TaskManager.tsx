@@ -1,4 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
+import { getTasks, addTask, toggleTask, deleteTask } from '../../lib/actions';
 
 interface Task {
   _id: string;
@@ -20,12 +23,22 @@ const TaskManager: React.FC = () => {
     dueDate: false,
   });
 
-  // Fetch tasks from the server-side API route
   useEffect(() => {
     const fetchTasks = async () => {
-      const response = await fetch('/api/tasks');
-      const data = await response.json();
-      setTasks(data);
+      // Fetch tasks safely
+      const fetchedTasks: { _id: string }[] = (await getTasks()) || [];
+
+      // Map the fetched tasks to match the Task interface
+      const formattedTasks: Task[] = fetchedTasks.map((task) => ({
+        _id: task._id,
+        title: '', // Set a default title if not provided
+        description: '', // Set a default description if not provided
+        dueDate: '', // Set a default dueDate if not provided
+        completed: false, // Set a default value for completed
+        isFading: false, // Default value for isFading
+      }));
+
+      setTasks(formattedTasks);
     };
     fetchTasks();
   }, []);
@@ -40,59 +53,72 @@ const TaskManager: React.FC = () => {
       return;
     }
 
-    // Send task to the API route for insertion
-    const response = await fetch('/api/tasks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ title, description, dueDate }),
+    await addTask(title, description, dueDate);
+    const fetchedTasks: { _id: string }[] = (await getTasks()) || [];
+    const formattedTasks: Task[] = fetchedTasks.map((task) => ({
+      _id: task._id,
+      title: '', 
+      description: '', 
+      dueDate: '', 
+      completed: false, 
+      isFading: false, 
+    }));
+    setTasks(formattedTasks);
+    setTitle('');
+    setDescription('');
+    setDueDate('');
+    setError({
+      title: false,
+      description: false,
+      dueDate: false,
     });
-
-    if (response.ok) {
-      setTitle('');
-      setDescription('');
-      setDueDate('');
-      setError({
-        title: false,
-        description: false,
-        dueDate: false,
-      });
-
-      // Fetch updated tasks
-      const fetchedTasks = await fetch('/api/tasks');
-      const tasksData = await fetchedTasks.json();
-      setTasks(tasksData);
-    }
   };
 
   const handleToggleTask = async (taskId: string, completed: boolean) => {
-    await fetch(`/api/tasks/${taskId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ completed: !completed }),
-    });
+    await toggleTask(taskId, !completed);
+    const fetchedTasks: { _id: string }[] = (await getTasks()) || [];
+    const formattedTasks: Task[] = fetchedTasks.map((task) => ({
+      _id: task._id,
+      title: '', 
+      description: '', 
+      dueDate: '', 
+      completed: false, 
+      isFading: false, 
+    }));
+    setTasks(formattedTasks);
 
-    const fetchedTasks = await fetch('/api/tasks');
-    const tasksData = await fetchedTasks.json();
-    setTasks(tasksData);
+    if (!completed) {
+      const taskIndex = tasks.findIndex((task) => task._id === taskId);
+      if (taskIndex !== -1) {
+        const updatedTasks = [...tasks];
+        updatedTasks[taskIndex].isFading = true;
+        setTasks(updatedTasks);
+
+        setTimeout(() => {
+          const filteredTasks = updatedTasks.filter((task) => task._id !== taskId);
+          setTasks(filteredTasks);
+        }, 1000);
+      }
+    }
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    await fetch(`/api/tasks/${taskId}`, {
-      method: 'DELETE',
-    });
-
-    const fetchedTasks = await fetch('/api/tasks');
-    const tasksData = await fetchedTasks.json();
-    setTasks(tasksData);
+    await deleteTask(taskId);
+    const fetchedTasks: { _id: string }[] = (await getTasks()) || [];
+    const formattedTasks: Task[] = fetchedTasks.map((task) => ({
+      _id: task._id,
+      title: '', 
+      description: '', 
+      dueDate: '', 
+      completed: false, 
+      isFading: false,
+    }));
+    setTasks(formattedTasks);
   };
 
   return (
     <div className="flex min-h-screen">
-      {/* Task input section */}
+      
       <div className="w-1/2 p-8 bg-gray-800 text-white flex flex-col justify-center">
         <h1 className="text-5xl font-extrabold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg">
           TASK-MANAGER
@@ -126,7 +152,7 @@ const TaskManager: React.FC = () => {
         </button>
       </div>
 
-      {/* Task display section */}
+    
       <div className="w-1/2 p-8 bg-gray-700 text-white overflow-y-auto">
         <h1 className="text-4xl font-semibold text-center mb-6">Task Dashboard</h1>
         <ul>
