@@ -25,8 +25,8 @@ const TaskManager: React.FC = () => {
 
   useEffect(() => {
     const fetchTasks = async () => {
-      // Fetch tasks
-      const fetchedTasks: { _id: string }[] = await getTasks();
+      // Fetch tasks safely
+      const fetchedTasks: { _id: string }[] = (await getTasks()) || [];
 
       // Map the fetched tasks to match the Task interface
       const formattedTasks: Task[] = fetchedTasks.map((task) => ({
@@ -54,7 +54,7 @@ const TaskManager: React.FC = () => {
     }
 
     await addTask(title, description, dueDate);
-    const fetchedTasks: { _id: string }[] = await getTasks();
+    const fetchedTasks: { _id: string }[] = (await getTasks()) || [];
     const formattedTasks: Task[] = fetchedTasks.map((task) => ({
       _id: task._id,
       title: '', 
@@ -76,7 +76,7 @@ const TaskManager: React.FC = () => {
 
   const handleToggleTask = async (taskId: string, completed: boolean) => {
     await toggleTask(taskId, !completed);
-    const fetchedTasks: { _id: string }[] = await getTasks();
+    const fetchedTasks: { _id: string }[] = (await getTasks()) || [];
     const formattedTasks: Task[] = fetchedTasks.map((task) => ({
       _id: task._id,
       title: '', 
@@ -104,7 +104,7 @@ const TaskManager: React.FC = () => {
 
   const handleDeleteTask = async (taskId: string) => {
     await deleteTask(taskId);
-    const fetchedTasks: { _id: string }[] = await getTasks();
+    const fetchedTasks: { _id: string }[] = (await getTasks()) || [];
     const formattedTasks: Task[] = fetchedTasks.map((task) => ({
       _id: task._id,
       title: '', 
@@ -189,3 +189,4 @@ const TaskManager: React.FC = () => {
 };
 
 export default TaskManager;
+
