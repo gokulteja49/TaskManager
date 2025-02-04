@@ -1,23 +1,31 @@
-'use server';
+// actions.ts
 import { db } from './db';
 import { ObjectId } from 'mongodb';
 
-// Define a type for the retry operation to make it more specific.
-const retryOperation = async <T>(operation: () => Promise<T>, retries: number = 3): Promise<T> => {
+// Define a type for the task to ensure type safety
+interface Task {
+  title: string;
+  description: string;
+  dueDate: string;
+  completed: boolean;
+}
+
+// Retry Operation with Exponential Backoff
+const retryOperation = async <T>(operation: () => Promise<T>, retries: number = 3, delay: number = 1000): Promise<T> => {
   let attempt = 0;
   while (attempt < retries) {
     try {
-      return await operation();  // Try executing the operation
-    } catch {
-      attempt++;  // Increment the retry attempt
-      console.error(`Retrying operation, attempt ${attempt}...`);
+      return await operation();
+    } catch (error) {
+      attempt++;
+      console.error(`Attempt ${attempt} failed:`, error);
       if (attempt === retries) {
-        throw new Error('Operation failed after multiple retries');  // If retries exhausted, throw error
+        throw new Error('Operation failed after multiple retries');
       }
+      await new Promise(resolve => setTimeout(resolve, delay));
+      delay *= 2;
     }
   }
-
-  // Ensure that if retries fail, an error is thrown (returning undefined was causing the issue).
   throw new Error('Failed after retries');
 };
 
@@ -32,10 +40,10 @@ export async function getTasks(page: number = 1, limit: number = 10) {
 
     return tasks.map(task => ({
       ...task,
-      _id: task._id.toString(),
+      _id: task._id.toString(),  // Convert ObjectId to string for frontend compatibility
     }));
-  } catch {
-    console.error('Error fetching tasks');
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
     throw new Error('Failed to fetch tasks');
   }
 }
@@ -43,9 +51,10 @@ export async function getTasks(page: number = 1, limit: number = 10) {
 // Add Task
 export async function addTask(title: string, description: string, dueDate: string) {
   try {
-    await db.collection('tasks').insertOne({ title, description, dueDate, completed: false });
-  } catch {
-    console.error('Error adding task');
+    const task: Task = { title, description, dueDate, completed: false };
+    await db.collection('tasks').insertOne(task);
+  } catch (error) {
+    console.error('Error adding task:', error);
     throw new Error('Failed to add task');
   }
 }
@@ -60,14 +69,14 @@ export async function toggleTask(id: string, completed: boolean): Promise<boolea
       );
 
       if (result.modifiedCount === 1) {
-        return true;  // Return true if the task was successfully updated
+        return true;
       } else {
-        console.error('No task found or update failed');
-        return false;  // Return false if no task was updated
+        console.error(`Task with id ${id} not found or update failed`);
+        return false;
       }
-    } catch {
-      console.error('Error toggling task');
-      return false;  // Return false if an error occurs
+    } catch (error) {
+      console.error('Error toggling task:', error);
+      return false;
     }
   });
 }
@@ -75,10 +84,13 @@ export async function toggleTask(id: string, completed: boolean): Promise<boolea
 // Delete Task
 export async function deleteTask(id: string) {
   try {
-    await db.collection('tasks').deleteOne({ _id: new ObjectId(id) });
-  } catch {
-    console.error('Error deleting task');
+    const result = await db.collection('tasks').deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      throw new Error(`No task found with id ${id}`);
+    }
+  } catch (error) {
+    console.error('Error deleting task:', error);
     throw new Error('Failed to delete task');
   }
 }
-
